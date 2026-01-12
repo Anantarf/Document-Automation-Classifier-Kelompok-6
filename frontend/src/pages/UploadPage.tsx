@@ -136,6 +136,7 @@ export default function UploadPage() {
   const handleReset = () => {
     setFile(null);
     setPreviewUrl(null);
+    setAnalyzeError('');
     reset();
     resetMutation();
   };

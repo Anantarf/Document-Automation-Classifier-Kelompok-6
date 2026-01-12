@@ -101,6 +101,9 @@ def search_documents(
         # default ordering
         q = q.order_by(Document.uploaded_at.desc(), Document.id.desc())
 
+    # Get total count BEFORE adding limit/offset
+    total = q.count()
+
     rows = (
         q.offset(offset)
          .limit(limit)
@@ -108,11 +111,11 @@ def search_documents(
     )
 
     # Attach total in header for frontend pagination
-    try:
-        if response is not None:
+    if response is not None:
+        try:
             response.headers['X-Total-Count'] = str(total)
-    except Exception:
-        pass
+        except Exception:
+            pass
 
     return rows
 

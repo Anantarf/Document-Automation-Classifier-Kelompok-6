@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "../api/axios";
 import { FileText, Search, Upload, ArrowRight, TrendingUp, MoreHorizontal, File, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Document } from "../types";
 
@@ -12,19 +12,21 @@ export default function Dashboard() {
   const { data: stats } = useQuery({
     queryKey: ['stats'],
     queryFn: async () => {
-        const res = await axios.get('http://localhost:8000/search/stats');
+        const res = await api.get('/search/stats');
         return res.data;
     },
     initialData: { total_documents: 0, surat_masuk: 0, surat_keluar: 0 }
   });
 
   // Fetch Activity (reuse search endpoint for now with limit 5)
-  const { data: recentDocs } = useQuery({
+  const { data: recentDocs = [] } = useQuery({
     queryKey: ['recent'],
     queryFn: async () => {
-        const res = await axios.get('http://localhost:8000/search', { params: { limit: 5 } });
-        return res.data; // array or { items: [] } depending on backend. Previous code assumed array or object. Check SearchPage.
+        const res = await api.get('/search', { params: { limit: 5 } });
+        // Handle both array and paginated response
+        return Array.isArray(res.data) ? res.data : (res.data.items || []);
     }
+  });
   });
   
   // Handle backend response format variations (just in case)
