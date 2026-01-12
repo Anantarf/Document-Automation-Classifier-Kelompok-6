@@ -189,7 +189,7 @@ export default function Dashboard() {
             <div className="space-y-3">
               <Link
                 to="/upload"
-                className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:border-primary-500 hover:bg-primary-50 transition-all group cursor-pointer block"
+                className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:border-primary-500 hover:bg-primary-50 transition-all group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-colors">
                   <Upload size={20} />
@@ -201,7 +201,7 @@ export default function Dashboard() {
               </Link>
               <Link
                 to="/search"
-                className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:border-purple-500 hover:bg-purple-50 transition-all group cursor-pointer block"
+                className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:border-purple-500 hover:bg-purple-50 transition-all group cursor-pointer"
               >
                 <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
                   <Search size={20} />
