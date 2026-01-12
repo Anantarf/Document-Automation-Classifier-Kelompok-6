@@ -139,6 +139,7 @@ def get_months(
     """
     Returns list of months (names) found in documents for specific year/jenis.
     Since tanggal_surat is string, we must fetch and parse distinct values.
+    Supports both Indonesian and English month names.
     """
     # Optimized: fetch only needed columns
     docs = db.query(Document.tanggal_surat).filter(
@@ -150,20 +151,32 @@ def get_months(
     # Set of found months
     found_months = set()
     
-    # Common Indo months names to match against
-    INDO_MONTHS = [
-        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-    ]
+    # Month names mapping: both Indonesian and English
+    MONTHS_MAPPING = {
+        "Januari": "January", "Februari": "February", "Maret": "March",
+        "April": "April", "Mei": "May", "Juni": "June",
+        "Juli": "July", "Agustus": "August", "September": "September",
+        "Oktober": "October", "November": "November", "Desember": "December"
+    }
+    
+    # All month names to search for (both languages)
+    ALL_MONTHS_ID = list(MONTHS_MAPPING.keys())
+    ALL_MONTHS_EN = list(MONTHS_MAPPING.values())
+    ALL_MONTH_NAMES = ALL_MONTHS_ID + ALL_MONTHS_EN
     
     for (t_str,) in docs:
-        if not t_str: continue
+        if not t_str: 
+            continue
         t_lower = t_str.lower()
-        for m in INDO_MONTHS:
+        
+        # Try to find any month name (Indonesian or English)
+        for m in ALL_MONTH_NAMES:
             if m.lower() in t_lower:
-                found_months.add(m)
+                # Return Indonesian name for UI consistency
+                found_month = m if m in ALL_MONTHS_ID else [k for k, v in MONTHS_MAPPING.items() if v == m][0]
+                found_months.add(found_month)
                 break
     
-    # Sort them chronologically
-    sorted_months = sorted(list(found_months), key=lambda x: INDO_MONTHS.index(x))
+    # Sort them chronologically using Indonesian month order
+    sorted_months = sorted(list(found_months), key=lambda x: ALL_MONTHS_ID.index(x))
     return sorted_months

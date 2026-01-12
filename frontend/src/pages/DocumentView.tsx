@@ -33,28 +33,33 @@ export default function DocumentView() {
   const [matchCount, setMatchCount] = React.useState<number>(0);
   const [currentMatchIndex, setCurrentMatchIndex] = React.useState<number | null>(null);
 
-  // Cache blob URL and clean up
+  // Cache blob URL and clean up - improved cleanup on unmount
   const fileUrlRef = React.useRef<string | undefined>(undefined);
   React.useEffect(() => {
+    // Clean previous URL if exists
     if (fileUrlRef.current) {
       URL.revokeObjectURL(fileUrlRef.current);
       fileUrlRef.current = undefined;
     }
-    if (fileBlob) {
-      if (typeof URL.createObjectURL === 'function') {
-        fileUrlRef.current = URL.createObjectURL(fileBlob);
-      } else {
-        // test env (jsdom) may not implement createObjectURL; skip creating a blob URL
-        fileUrlRef.current = undefined;
-      }
+
+    // Create new URL if blob available
+    if (fileBlob && typeof URL.createObjectURL === 'function') {
+      fileUrlRef.current = URL.createObjectURL(fileBlob);
     }
+
+    // Cleanup on unmount or blob change
     return () => {
       if (fileUrlRef.current) {
-        URL.revokeObjectURL(fileUrlRef.current);
+        try {
+          URL.revokeObjectURL(fileUrlRef.current);
+        } catch (e) {
+          // Ignore errors during cleanup
+          console.warn('Error revoking object URL:', e);
+        }
         fileUrlRef.current = undefined;
       }
     };
-  }, [fileBlob]);
+  }, [fileBlob, docId]);
 
   const onDocumentLoadSuccess = (pdf: { numPages?: number }) => {
     setNumPages(pdf.numPages || 0);

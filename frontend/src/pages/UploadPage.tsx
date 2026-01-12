@@ -98,6 +98,8 @@ export default function UploadPage() {
         } catch (err) {
           console.error('Analysis failed', err);
           setAnalyzeError('Gagal menganalisis file otomatis. Silakan isi manual.');
+          // Reset mutation state on error
+          resetMutation();
         } finally {
           setIsAnalyzing(false);
         }

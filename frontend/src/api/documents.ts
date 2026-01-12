@@ -9,9 +9,11 @@ export type SearchResult = {
 export type SearchParams = Record<string, string | number | boolean | undefined>;
 
 export async function searchDocuments(params: SearchParams): Promise<SearchResult> {
-  const res = await api.get<Document[]>('/search/', { params });
-  const total = Number(res.headers['x-total-count'] ?? res.data.length);
-  return { items: res.data, total };
+  const res = await api.get<SearchResult>('/search/', { params });
+  // Response should be array of Document[], extract total from header
+  const items = Array.isArray(res.data) ? res.data : (res.data as any).items || [];
+  const total = Number(res.headers['x-total-count'] ?? items.length);
+  return { items, total };
 }
 
 export async function uploadDocument(formData: FormData) {
