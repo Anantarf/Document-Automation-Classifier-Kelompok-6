@@ -5,29 +5,31 @@ Skema Pydantic untuk request/response API.
 """
 from pydantic import BaseModel, Field
 from typing import Optional
-from datetime import date, datetime
+from datetime import datetime
 
 class DocumentCreate(BaseModel):
     jenis: str = Field(example='surat_masuk')
     tahun: int
     nomor_surat: Optional[str] = None
     perihal: Optional[str] = None
-    tanggal_surat: Optional[date] = None
     uploaded_by: Optional[str] = None
 
 class DocumentRead(BaseModel):
+    """Match actual Document model fields"""
     id: int
-    file_name: str
-    stored_path: str
-    jenis: str
     tahun: int
-    nomor_surat: Optional[str]
-    perihal: Optional[str]
-    tanggal_surat: Optional[date]
-    confidence: Optional[float]
-    status: str
-    uploaded_by: Optional[str]
+    jenis: str
+    nomor_surat: Optional[str] = None
+    perihal: Optional[str] = None
+    tanggal_surat: Optional[str] = None
+    pengirim: Optional[str] = None
+    penerima: Optional[str] = None
+    stored_path: str
+    metadata_path: str
     uploaded_at: datetime
+    mime_type: str
+    file_hash: Optional[str] = None
+    ocr_enabled: bool = False
 
     class Config:
         from_attributes = True

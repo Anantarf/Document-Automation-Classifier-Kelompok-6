@@ -4,8 +4,11 @@
 Klasifikasi rule-based: surat_masuk vs surat_keluar.
 """
 
+import logging
 import re
 from typing import Tuple
+
+log = logging.getLogger(__name__)
 
 # Aturan sederhana berbasis kata kunci & pola
 KEYWORDS_KELUAR = [

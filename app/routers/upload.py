@@ -1,158 +1,225 @@
 
 # app/routers/upload.py
-"""
-Endpoint upload dokumen + pipeline background:
-- Terima DOCX/PDF
-- Ekstraksi teks (DOCX/PDF teks) atau OCR (PDF scan)
-- Ekstraksi metadata (nomor/perihal/tanggal/pengirim/penerima)
-- Klasifikasi (surat_masuk / surat_keluar)
-- Tentukan tahun
-- Auto-foldering + metadata.json
-- Simpan ke database + audit log
-"""
-
-import os
-from datetime import datetime
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime
+from pathlib import Path
+import hashlib
+import json
+import re
+
+from app.dependencies import get_db
 from app.config import settings
-from app.models import Document, OCRText
-from app.utils.hash import sha256_file
-from app.utils.audit import log as audit_log
-from app.services.parser_docx import extract_text_from_docx
-from app.services.parser_pdf import extract_text_from_pdf
-from app.services.ocr import ocr_pdf_to_text
-from app.services.metadata import (
-    extract_nomor_surat,
-    extract_perihal,
-    extract_tanggal,
-    extract_pengirim_penerima,
-    decide_tahun,
-)
-from app.services.classifier import classify
-from app.services.foldering import target_dir, write_metadata
+from app.models import Document
+from app.services.text_extraction import extract_text_and_save
+from app.services.metadata import parse_metadata
+from app.utils.slugs import slugify_nomor
+from app.constants import METADATA_FILENAME, TEXT_FILENAME
 
-router = APIRouter(prefix="/upload", tags=["upload"])
+router = APIRouter()
 
+from app.constants import ALLOWED_MIME
 
-def save_temp(file: UploadFile) -> str:
-    """Simpan file upload ke folder sementara."""
-    os.makedirs(settings.temp_upload_dir, exist_ok=True)
-    temp_path = os.path.join(settings.temp_upload_dir, file.filename)
-    with open(temp_path, "wb") as f:
-        f.write(file.file.read())
-    return temp_path
+# Use `slugify_nomor` from `app.utils.slugs` for nomor normalization
 
-
-@router.post("/")
-async def upload_file(
+@router.post("/upload/", summary="Unggah DOCX/PDF (auto kategori tahun & jenis)", tags=["Upload"])
+async def upload_document(
     file: UploadFile = File(...),
-    background_tasks: BackgroundTasks = None,
-    actor: str | None = None,
+    tahun: int | None = Form(None),            # opsional: auto dari parser
+    jenis: str | None = Form(None),            # opsional: auto ('masuk' | 'keluar')
+    nomor: str | None = Form(None),            # opsional: auto
+    perihal: str | None = Form(None),          # opsional: auto
+    tanggal_surat: str | None = Form(None),    # opsional: auto
+    pengirim: str | None = Form(None),
+    penerima: str | None = Form(None),
+    db: Session = Depends(get_db),
 ):
-    """Menerima file dan menjadwalkan proses pipeline di background."""
-    ext = (file.filename.split(".")[-1] or "").lower()
-    if ext not in ["pdf", "docx"]:
-        raise HTTPException(status_code=400, detail="Format tidak didukung. Gunakan DOCX atau PDF.")
+    # --- Validasi MIME ---
+    ext = ALLOWED_MIME.get(file.content_type)
+    if not ext:
+        raise HTTPException(status_code=415, detail="Only DOCX/PDF allowed")
 
-    temp_path = save_temp(file)
+    # --- Baca file & hash ---
+    content = await file.read()
+    size_bytes = len(content)
+    
+    # --- Validasi ukuran file ---
+    from app.constants import MAX_UPLOAD_SIZE
+    if size_bytes > MAX_UPLOAD_SIZE:
+        raise HTTPException(status_code=413, detail=f"File terlalu besar (max {MAX_UPLOAD_SIZE / (1024*1024):.0f} MB)")
+    
+    sha256 = hashlib.sha256(content).hexdigest()
 
-    # Hitung hash untuk mencegah duplikasi
-    with open(temp_path, "rb") as fh:
-        file_hash = sha256_file(fh)
+    # --- Cek duplikasi by hash ---
+    existing = db.query(Document).filter(Document.file_hash == sha256).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="File yang sama sudah pernah diunggah (hash duplikat)")
 
-    # Jadwalkan proses pipeline (agar response cepat)
-    if background_tasks is not None:
-        background_tasks.add_task(process_pipeline, temp_path, file.filename, file_hash, actor)
-    return {"message": "File diterima, sedang diproses", "file": file.filename}
+    now_utc = datetime.utcnow()
 
+    # --- Ekstrak teks di folder temp ---
+    temp_dir: Path = settings.TEMP_UPLOAD_PATH
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    text_path, text_content, ocr_used = extract_text_and_save(
+        content=content,
+        mime_type=file.content_type,
+        base_dir=temp_dir,
+    )
 
-def process_pipeline(temp_path: str, filename: str, file_hash: str, actor: str | None):
-    """Pipeline lengkap pemrosesan dokumen."""
-    from app.database import SessionLocal
+    # --- Parse metadata dari teks + nama file ---
+    parsed = parse_metadata(text_content or "", file.filename, uploaded_at=now_utc)
 
-    session: Session = SessionLocal()
+    # --- Tentukan nilai final (input menang jika diisi) ---
+    nomor_final = (nomor or parsed.get("nomor")) or "TANPA-NOMOR"
+    perihal_final = (perihal or parsed.get("perihal")) or "Tidak ada perihal"
+    tanggal_final = tanggal_surat or parsed.get("tanggal_surat")
+
+    # Tahun: prefer nilai input yang valid (positive int). Jika input kosong/0, fallback ke parsed, lalu tahun upload.
     try:
-        # Cek duplikasi
-        existing = session.query(Document).filter_by(file_hash=file_hash).first()
-        if existing:
-            audit_log(session, actor, "upload_duplicate", existing.id, f"Duplikasi: {filename}")
-            os.remove(temp_path)
-            return
-
-        # Ekstraksi teks
-        text = ""
-        is_scanned = False
-        if filename.lower().endswith(".docx"):
-            text = extract_text_from_docx(temp_path)
+        if tahun and int(tahun) > 0:
+            tahun_final = int(tahun)
         else:
-            text, is_scanned = extract_text_from_pdf(temp_path)
-            if is_scanned:
-                text = ocr_pdf_to_text(temp_path)
+            tahun_final = parsed.get("tahun")
 
-        # Ekstraksi metadata
-        nomor = extract_nomor_surat(text) or None
-        perihal = extract_perihal(text) or None
-        tanggal = extract_tanggal(text)
-        ppl = extract_pengirim_penerima(text)
+        # Pastikan tahun_final valid (positive integer). Jika tidak ada, fallback ke tahun saat upload.
+        if tahun_final is None or int(tahun_final) <= 0:
+            tahun_final = now_utc.year  # FALLBACK: gunakan tahun upload saat ini
 
-        # Klasifikasi & tahun
-        jenis, confidence = classify(text)
-        tahun = decide_tahun(tanggal, uploaded_at=datetime.utcnow())
+        tahun_final = int(tahun_final)
+    except (ValueError, TypeError):
+        # Jika parsing gagal, gunakan tahun saat ini sebagai fallback
+        tahun_final = now_utc.year
 
-        # Auto-foldering
-        dir_path = target_dir(settings.storage_root, tahun, jenis, nomor, perihal)
-        os.makedirs(dir_path, exist_ok=True)
-        final_path = os.path.join(dir_path, "original." + filename.split(".")[-1])
-        os.replace(temp_path, final_path)
+    # Jenis: input -> parsed -> fallback kecil -> default 'keluar'
+    jenis_final = jenis or parsed.get("jenis")
+    if jenis_final is None:
+        if re.search(r"(?i)(?:^|/|[-_])SM(?:/|[-_]|$)", nomor_final):
+            jenis_final = "masuk"
+        elif re.search(r"(?i)(?:^|/|[-_])SK(?:/|[-_]|$)", nomor_final):
+            jenis_final = "keluar"
+    if jenis_final not in {"masuk", "keluar"}:
+        jenis_final = "keluar"
 
-        # Simpan DB
-        doc = Document(
-            file_name=filename,
-            stored_path=final_path,
-            file_hash=file_hash,
-            jenis=jenis,
-            tahun=tahun,
-            nomor_surat=nomor,
-            perihal=perihal,
-            tanggal_surat=tanggal.date() if tanggal else None,
-            confidence=confidence,
-            status="processed",
-            uploaded_by=actor,
-        )
-        session.add(doc)
-        session.flush()
+    # --- Foldering (tetap) ---
+    slug = slugify_nomor(nomor_final)
+    base_dir: Path = settings.STORAGE_ROOT_DIR / str(tahun_final) / jenis_final / slug
+    base_dir.mkdir(parents=True, exist_ok=True)
 
-        # Simpan ocr_text (baik hasil parser maupun OCR)
-        if text:
-            ocr = OCRText(doc_id=doc.id, content=text)
-            session.add(ocr)
+    # --- Simpan file asli ---
+    original_name = f"original.{ext}"
+    original_path = base_dir / original_name
+    original_path.write_bytes(content)
 
-        # metadata.json
-        meta = {
-            "jenis": jenis,
-            "tahun": tahun,
-            "nomor_surat": nomor,
-            "perihal": perihal,
-            "tanggal_surat": doc.tanggal_surat.isoformat() if doc.tanggal_surat else None,
-            "pengirim": ppl.get("pengirim"),
-            "penerima": ppl.get("penerima"),
-            "confidence": confidence,
-            "source_file": os.path.basename(final_path),
-            "uploaded_by": actor,
-            "uploaded_at": datetime.utcnow().isoformat(),
-        }
-        write_metadata(dir_path, meta)
+    # --- Simpan text.txt (kalau ada) ---
+    final_text_path = None
+    if text_content:
+        final_text_path = base_dir / TEXT_FILENAME
+        final_text_path.write_text(text_content, encoding="utf-8")
 
-        session.commit()
-        audit_log(session, actor, "upload", doc.id, f"Upload {filename} → {doc.jenis}/{doc.tahun}")
-    except Exception as e:
-        try:
-            session.rollback()
-        except Exception:
-            pass
-        audit_log(session, actor, "error", None, f"{filename}: {e}")
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
-    finally:
-        session.close()
+    # --- Siapkan metadata.json ---
+    metadata_path = base_dir / METADATA_FILENAME
+    metadata = {
+        "uploaded_at": now_utc.isoformat() + "Z",
+        "file_original": original_name,
+        "mime_type": file.content_type,
+        "size_bytes": size_bytes,
+        "hash_sha256": sha256,
+        "ocr_enabled": bool(settings.TESSERACT_CMD) or ocr_used,
+        "text_path": final_text_path.as_posix() if final_text_path else None,
+        "source_filename": file.filename,
+    }
+    metadata.update({
+        "tahun": tahun_final,
+        "jenis": jenis_final,
+        "nomor": nomor_final,
+        "perihal": perihal_final,
+        "tanggal_surat": tanggal_final,
+        "pengirim": pengirim or parsed.get("pengirim"),
+        "penerima": penerima or parsed.get("penerima"),
+        "parsed": parsed,
+    })
+    metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    # --- Simpan ke SQLite ---
+    doc = Document(
+        tahun=tahun_final,
+        jenis=jenis_final,
+        nomor_surat=nomor_final,
+        perihal=perihal_final,
+        tanggal_surat=tanggal_final,
+        pengirim=metadata["pengirim"],
+        penerima=metadata["penerima"],
+        stored_path=original_path.as_posix(),
+        metadata_path=metadata_path.as_posix().replace("\\", "/"),
+        uploaded_at=now_utc,
+        mime_type=file.content_type,
+        file_hash=sha256,
+        ocr_enabled=metadata["ocr_enabled"],
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+
+    # --- Bersihkan file text temp (best-effort) ---
+    try:
+        if text_path: text_path.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+    # --- Respons ---
+    return {
+        "id": doc.id,
+        "message": "uploaded",
+        "tahun": tahun_final,
+        "jenis": jenis_final,
+        "nomor": nomor_final,               # legacy key (backward compatibility)
+        "nomor_surat": nomor_final,        # canonical key
+        "perihal": perihal_final,
+        "stored_path": doc.stored_path,
+        "metadata_path": doc.metadata_path,
+        "mime_type": file.content_type,
+        "size": size_bytes,
+        "hash": f"sha256:{sha256}",
+        "parsed": parsed,
+    }
+
+
+@router.post("/upload/analyze", summary="Analyze file metadata without saving", tags=["Upload"])
+async def analyze_document(
+    file: UploadFile = File(...),
+):
+    # --- Validasi MIME ---
+    ext = ALLOWED_MIME.get(file.content_type)
+    if not ext:
+        raise HTTPException(status_code=415, detail="Only DOCX/PDF allowed")
+
+    # --- Baca content ---
+    content = await file.read()
+    
+    # --- Estrak Teks (Temp) ---
+    temp_dir: Path = settings.TEMP_UPLOAD_PATH
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Gunakan extract_text_and_save tapi kita hapus hasilnya nanti
+    text_path, text_content, ocr_used = extract_text_and_save(
+        content=content,
+        mime_type=file.content_type,
+        base_dir=temp_dir,
+    )
+    
+    # --- Parse Metadata ---
+    parsed = parse_metadata(text_content or "", file.filename, uploaded_at=datetime.utcnow())
+    
+    # Clean up temp text file immediately
+    try:
+        if text_path and text_path.exists():
+            text_path.unlink()
+    except Exception:
+        pass
+        
+    return {
+        "filename": file.filename,
+        "parsed": parsed,
+        "ocr_used": ocr_used,
+        "preview_supported": True 
+    }

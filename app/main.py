@@ -27,9 +27,7 @@ data/
 storage/
 """
 
-from sqlalchemy.orm import declarative_base
-Base = declarative_base()
-
+# `Base` is defined centrally in `app.models` to avoid duplicate declarations.
 from contextlib import asynccontextmanager
 import logging
 
@@ -50,7 +48,7 @@ from app.database import init_db
 
 # 3) Import routers (pastikan nama modul sesuai)
 #    Jika nama file berbeda, sesuaikan import di bawah ini.
-from app.routers import upload, search, export
+from app.routers import upload, search, export, health, auth
 
 # ----- Logging (gunakan logger uvicorn agar nyatu di console) -----
 log = logging.getLogger("uvicorn")
@@ -82,11 +80,21 @@ async def lifespan(app: FastAPI):
     try:
         ensure_dirs()
         init_db()
+        
+        # Seed Admin
+        from app.database import SessionLocal
+        from app.routers.auth import create_initial_admin
+        db = SessionLocal()
+        try:
+            create_initial_admin(db)
+        finally:
+            db.close()
+            
         log.info(
             "[startup] DB: %s | STORAGE: %s | UPLOADS: %s",
             settings.DB_FILE,
             settings.STORAGE_ROOT_DIR,
-            settings.TEMP_UPLOAD_DIR_DIR,
+            settings.TEMP_UPLOAD_PATH,
         )
     except Exception as e:
         # Logging jelas agar mudah debug saat spawn-reload di Windows
@@ -111,12 +119,33 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ----- CORS (dev; sesuaikan origin untuk produksi) -----
+# ----- CORS (secure by default; sesuaikan untuk produksi) -----
+# DEVELOPMENT: lokal frontend bisa akses
+# PRODUCTION: restrict ke domain spesifik saja!
+cors_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:5173",  # Vite dev server default
+    "http://127.0.0.1:5173",
+    "http://localhost:5174",  # Vite alternate port
+    "http://127.0.0.1:5174",
+]
+
+# Allow CORS origins dari env variable jika ada
+import os
+env_origins = os.getenv("CORS_ORIGINS", "").split(",")
+cors_origins.extend([o.strip() for o in env_origins if o.strip()])
+
+# TEMPORARY DEBUG: allow all origins in development
+if os.getenv("APP_ENV", "").lower() == "development":
+    log.warning("⚠️  CORS: Allowing ALL origins (development mode)")
+    cors_origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ganti ke ["http://localhost:3000", "http://127.0.0.1:3000"] jika perlu
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Restrict methods untuk security
     allow_headers=["*"],
 )
 
@@ -136,6 +165,17 @@ def healthz():
 app.include_router(upload.router, tags=["Upload"])
 app.include_router(search.router, tags=["Search"])
 app.include_router(export.router, tags=["Export"])
+# Health endpoints (OCR check, etc.)
+# Health endpoints (OCR check, etc.)
+app.include_router(health.router)
+app.include_router(auth.router)
+
+# Document endpoints (metadata, file, text)
+try:
+    from app.routers import documents
+    app.include_router(documents.router, tags=["Documents"])
+except Exception:
+    log.warning("Documents router not available")
 
 # ----- Catatan untuk menjalankan uvicorn -----
 # python -m uvicorn app.main:app --reload

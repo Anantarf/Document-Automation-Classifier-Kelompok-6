@@ -5,17 +5,16 @@ Membuat folder storage dan inisialisasi database SQLite.
 """
 import os
 from app.config import settings
-from app.database import engine, Base
+from app.database import engine
+from app.models import Base
 
-# Buat folder untuk DB & storage
-os.makedirs(os.path.dirname(settings.sqlite_db_path), exist_ok=True)
-os.makedirs(settings.storage_root, exist_ok=True)
-os.makedirs(settings.temp_upload_dir, exist_ok=True)
+# Gunakan helper ensure_dirs() agar konsisten dengan konfigurasi
+settings.ensure_dirs()
 
-# Buat tabel
+# Buat tabel jika belum ada
 Base.metadata.create_all(bind=engine)
 
 print('DB & folder siap:')
-print('  DB Path      :', settings.sqlite_db_path)
-print('  Storage Root :', settings.storage_root)
-print('  Temp Upload  :', settings.temp_upload_dir)
+print('  DB Path      :', settings.DB_FILE)
+print('  Storage Root :', settings.STORAGE_ROOT_DIR)
+print('  Temp Upload  :', settings.TEMP_UPLOAD_PATH)

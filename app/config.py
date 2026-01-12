@@ -22,30 +22,61 @@ def as_abs_path(path_like: str) -> Path:
         p = (BASE_DIR / path_like)
     return p.resolve()
 
-class Settings:
-    """
-    Objek settings kompatibel dengan impor lama: from app.config import settings
-    Membaca .env via os.getenv (pastikan load_dotenv dipanggil di main.py).
-    """
-    def __init__(self) -> None:
-        self.SQLITE_DB_PATH = _env("SQLITE_DB_PATH", "data/app.db")
-        self.STORAGE_ROOT = _env("STORAGE_ROOT", "storage/arsip_kelurahan")
-        self.TEMP_UPLOAD_DIR = _env("TEMP_UPLOAD_DIR", "storage/uploads")
-        self.TESSERACT_CMD = _env("TESSERACT_CMD", "")
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-        # absolute variants (Path)
-        self.DB_FILE = as_abs_path(self.SQLITE_DB_PATH)
-        self.STORAGE_ROOT_DIR = as_abs_path(self.STORAGE_ROOT)
-        self.TEMP_UPLOAD_DIR_DIR = as_abs_path(self.TEMP_UPLOAD_DIR)
+
+class Settings(BaseSettings):
+    """Application settings via `pydantic-settings` for env validation and loading.
+
+    Keeps backward-compatible attributes and convenience properties used across the
+    codebase (e.g., `DB_FILE`, `STORAGE_ROOT_DIR`, snake_case aliases).
+    """
+
+    SQLITE_DB_PATH: str = "data/app.db"
+    STORAGE_ROOT: str = "storage/arsip_kelurahan"
+    TEMP_UPLOAD_DIR: str = "storage/uploads"
+    TESSERACT_CMD: str = ""
+    SECRET_KEY: str = ""  # For JWT authentication - REQUIRED in production
+
+    # Tell pydantic-settings to read .env automatically
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    # Derived path helpers
+    @property
+    def DB_FILE(self):
+        return as_abs_path(self.SQLITE_DB_PATH)
+
+    @property
+    def STORAGE_ROOT_DIR(self):
+        return as_abs_path(self.STORAGE_ROOT)
+
+    @property
+    def TEMP_UPLOAD_PATH(self):
+        return as_abs_path(self.TEMP_UPLOAD_DIR)
 
     def ensure_dirs(self) -> None:
-        """
-        Buat folder-folder penting jika belum ada.
-        Penting: SQLite hanya bisa create FILE, bukan FOLDER.
-        """
+        """Create important folders if missing."""
         self.DB_FILE.parent.mkdir(parents=True, exist_ok=True)
         self.STORAGE_ROOT_DIR.mkdir(parents=True, exist_ok=True)
-        self.TEMP_UPLOAD_DIR_DIR.mkdir(parents=True, exist_ok=True)
+        self.TEMP_UPLOAD_PATH.mkdir(parents=True, exist_ok=True)
+
+    # Compatibility aliases for older code that used snake_case names
+    @property
+    def tesseract_cmd(self) -> str:
+        return self.TESSERACT_CMD
+
+    @property
+    def sqlite_db_path(self) -> str:
+        # Return string path for scripts expecting path-like string
+        return str(self.DB_FILE)
+
+    @property
+    def storage_root(self) -> str:
+        return str(self.STORAGE_ROOT_DIR)
+
+    @property
+    def temp_upload_dir(self) -> str:
+        return str(self.TEMP_UPLOAD_PATH)
 
 # Ekspor objek settings untuk kompatibilitas impor lama
 settings = Settings()
@@ -53,7 +84,7 @@ settings = Settings()
 # Alias untuk kompatibilitas patch lain
 DB_FILE = settings.DB_FILE
 STORAGE_ROOT_DIR = settings.STORAGE_ROOT_DIR
-TEMP_UPLOAD_DIR_DIR = settings.TEMP_UPLOAD_DIR_DIR
+TEMP_UPLOAD_PATH = settings.TEMP_UPLOAD_PATH
 
 def ensure_dirs():
     settings.ensure_dirs()
