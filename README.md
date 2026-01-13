@@ -102,10 +102,6 @@ npm run dev
 
 Frontend akan berjalan di `http://localhost:5173`
 
-## 📋 Default Login
-
-- **Username**: `pelamampang`
-- **Password**: `pelamampang123`
 
 > ⚠️ **PENTING**: Ubah password ini setelah first login di production!
 
@@ -324,24 +320,8 @@ Contributions are welcome! Please follow these steps:
 
 ## 📄 License
 
-This project is for educational purposes (P3L - Sistem Informasi).
+This project is for educational purposes (P3L - Informatika).
 
-## 🤝 Team
 
-**Kelompok 6 - Sistem Informasi**
-
-- Ananta Raihan Fahrezi
-- [Other team members]
-
-**Instansi**: Kelurahan Pela Mampang, Jakarta Selatan
-
-## 📞 Support
-
-For issues or questions:
-
-- Open an issue on GitHub
-- Contact: [your-email@example.com]
-
----
 
 Made with ❤️ for Kelurahan Pela Mampang
