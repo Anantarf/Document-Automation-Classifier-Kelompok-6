@@ -1,12 +1,13 @@
 
 # app/routers/upload.py
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, Depends, Request
 from sqlalchemy.orm import Session
 from datetime import datetime
 from pathlib import Path
 import hashlib
 import json
 import re
+from pydantic import BaseModel
 
 from app.dependencies import get_db
 from app.config import settings
@@ -20,10 +21,45 @@ router = APIRouter()
 
 from app.constants import ALLOWED_MIME
 
+
+class PredictRequest(BaseModel):
+    text: str
+    jenis_hint: str | None = None
+
 # Use `slugify_nomor` from `app.utils.slugs` for nomor normalization
+
+# Helper function to extract month name from tanggal_surat
+def extract_bulan(tanggal_surat: str | None) -> str | None:
+    """Extract Indonesian month name from tanggal_surat string."""
+    if not tanggal_surat:
+        return None
+    
+    MONTHS = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ]
+    MONTHS_EN = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ]
+    
+    tanggal_lower = tanggal_surat.lower()
+    
+    # Check Indonesian months
+    for month in MONTHS:
+        if month.lower() in tanggal_lower:
+            return month
+    
+    # Check English months and convert to Indonesian
+    for i, month_en in enumerate(MONTHS_EN):
+        if month_en.lower() in tanggal_lower:
+            return MONTHS[i]
+    
+    return None
 
 @router.post("/upload/", summary="Unggah DOCX/PDF (auto kategori tahun & jenis)", tags=["Upload"])
 async def upload_document(
+    request: Request,
     file: UploadFile = File(...),
     tahun: int | None = Form(None),            # opsional: auto dari parser
     jenis: str | None = Form(None),            # opsional: auto ('masuk' | 'keluar')
@@ -73,22 +109,26 @@ async def upload_document(
     nomor_final = (nomor or parsed.get("nomor")) or "TANPA-NOMOR"
     perihal_final = (perihal or parsed.get("perihal")) or "Tidak ada perihal"
     tanggal_final = tanggal_surat or parsed.get("tanggal_surat")
+    
+    # Extract bulan (month) from tanggal_surat for categorization
+    bulan_final = extract_bulan(tanggal_final)
 
-    # Tahun: prefer nilai input yang valid (positive int). Jika input kosong/0, fallback ke parsed, lalu tahun upload.
+    # Tahun: prefer nilai input yang valid (positive int). Jika input kosong/0, fallback ke parsed.
+    # Jika tidak terdeteksi, biarkan None untuk disimpan di luar folder tahun.
     try:
         if tahun and int(tahun) > 0:
             tahun_final = int(tahun)
         else:
             tahun_final = parsed.get("tahun")
 
-        # Pastikan tahun_final valid (positive integer). Jika tidak ada, fallback ke tahun saat upload.
+        # Pastikan tahun_final valid (positive integer). Jika tidak ada, set None.
         if tahun_final is None or int(tahun_final) <= 0:
-            tahun_final = now_utc.year  # FALLBACK: gunakan tahun upload saat ini
-
-        tahun_final = int(tahun_final)
+            tahun_final = None  # Document will be stored directly in jenis folder
+        else:
+            tahun_final = int(tahun_final)
     except (ValueError, TypeError):
-        # Jika parsing gagal, gunakan tahun saat ini sebagai fallback
-        tahun_final = now_utc.year
+        # Jika parsing gagal, set None
+        tahun_final = None
 
     # Jenis: input -> parsed -> fallback kecil -> default 'keluar'
     jenis_final = jenis or parsed.get("jenis")
@@ -100,9 +140,14 @@ async def upload_document(
     if jenis_final not in {"masuk", "keluar"}:
         jenis_final = "keluar"
 
-    # --- Foldering (tetap) ---
+    # --- Foldering: different structure for invalid docs ---
     slug = slugify_nomor(nomor_final)
-    base_dir: Path = settings.STORAGE_ROOT_DIR / str(tahun_final) / jenis_final / slug
+    if tahun_final and bulan_final:
+        # Valid document: store in tahun/jenis/slug structure
+        base_dir: Path = settings.STORAGE_ROOT_DIR / str(tahun_final) / jenis_final / slug
+    else:
+        # Invalid document (no tahun or bulan): store directly in jenis/slug
+        base_dir: Path = settings.STORAGE_ROOT_DIR / jenis_final / slug
     base_dir.mkdir(parents=True, exist_ok=True)
 
     # --- Simpan file asli ---
@@ -147,6 +192,7 @@ async def upload_document(
         nomor_surat=nomor_final,
         perihal=perihal_final,
         tanggal_surat=tanggal_final,
+        bulan=bulan_final,
         pengirim=metadata["pengirim"],
         penerima=metadata["penerima"],
         stored_path=original_path.as_posix(),
@@ -223,3 +269,19 @@ async def analyze_document(
         "ocr_used": ocr_used,
         "preview_supported": True 
     }
+
+
+@router.post("/predict-jenis")
+async def predict_jenis(request: PredictRequest):
+    """Predict document type (masuk/keluar) using ML classifier or rules."""
+    from app.services.classifier_ml import classify
+    
+    try:
+        jenis, confidence = classify(request.text)
+        return {
+            "predicted_jenis": jenis,
+            "confidence": confidence,
+            "method": "ml" if confidence > 0.7 else "rule-based"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Classification error: {str(e)}")

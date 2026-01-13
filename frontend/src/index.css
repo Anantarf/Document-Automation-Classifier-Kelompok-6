@@ -13,13 +13,32 @@ body,
 body {
   font-family: 'Inter', sans-serif;
   @apply bg-slate-50 text-slate-900 antialiased;
+  line-height: 1.5;
+}
+
+/* Typography hierarchy improvements */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  letter-spacing: -0.01em;
+}
+
+p {
+  @apply leading-relaxed;
+}
+
+small {
+  @apply text-sm leading-normal;
 }
 
 @layer utilities {
   .glass-panel {
     @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-glass;
   }
-  
+
   .card-hover {
     @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
   }
@@ -27,7 +46,7 @@ body {
   .btn-primary {
     @apply bg-primary-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-700 transition-colors shadow-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
   }
-  
+
   .btn-secondary {
     @apply bg-white text-slate-700 border border-slate-200 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm active:scale-95;
   }

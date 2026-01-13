@@ -10,19 +10,14 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  console.log(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
   return config;
 });
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('[API Error]', error.message);
     if (error.code === 'ERR_NETWORK') {
-      console.error(
-        '[API] Backend tidak dapat diakses. Pastikan backend running di:',
-        api.defaults.baseURL,
-      );
+      console.error('Backend tidak dapat diakses:', api.defaults.baseURL);
     }
     return Promise.reject(error);
   },

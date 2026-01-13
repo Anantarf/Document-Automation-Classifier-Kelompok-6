@@ -12,13 +12,14 @@ class Document(Base):
     __tablename__ = "documents"
     id = Column(Integer, primary_key=True, index=True)
 
-    tahun = Column(Integer, index=True)
+    tahun = Column(Integer, index=True, nullable=True)  # Allow NULL for invalid docs
     jenis = Column(String(20), index=True)        # 'masuk' | 'keluar'
     # Keep DB column name as 'nomor' but expose it as `nomor_surat` on the model
     nomor_surat = Column("nomor", String(255), index=True)
     perihal = Column(String(255), index=True)
 
     tanggal_surat = Column(String(20), nullable=True)
+    bulan = Column(String(20), nullable=True, index=True)  # Extracted month name for categorization
 
     # Backwards-compatible attribute accessors for code that still uses `doc.nomor`
     @property

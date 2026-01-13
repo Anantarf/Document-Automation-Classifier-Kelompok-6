@@ -17,11 +17,12 @@ class DocumentCreate(BaseModel):
 class DocumentRead(BaseModel):
     """Match actual Document model fields"""
     id: int
-    tahun: int
+    tahun: Optional[int] = None  # Allow None for invalid docs
     jenis: str
     nomor_surat: Optional[str] = None
     perihal: Optional[str] = None
     tanggal_surat: Optional[str] = None
+    bulan: Optional[str] = None
     pengirim: Optional[str] = None
     penerima: Optional[str] = None
     stored_path: str

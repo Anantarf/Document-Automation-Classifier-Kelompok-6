@@ -30,14 +30,14 @@ export default function Dashboard() {
       const res = await api.get('/search/stats');
       return res.data;
     },
-    initialData: { total_documents: 0, surat_masuk: 0, surat_keluar: 0 },
+    initialData: { total_documents: 0, surat_masuk: 0, surat_keluar: 0, dokumen_lainnya: 0 },
   });
 
   // Fetch Activity (reuse search endpoint for now with limit 5)
   const { data: recentDocs = [] } = useQuery({
     queryKey: ['recent'],
     queryFn: async () => {
-      const res = await api.get('/search', { params: { limit: 5 } });
+      const res = await api.get('/search/', { params: { limit: 5 } });
       // Handle both array and paginated response
       return Array.isArray(res.data) ? res.data : res.data.items || [];
     },
@@ -53,8 +53,10 @@ export default function Dashboard() {
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard Overview</h1>
-          <p className="text-slate-500 mt-1">Pantau statistik dokumen dan aktivitas terbaru.</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Dashboard Arsip Digital
+          </h1>
+          <p className="text-slate-500 mt-1">Pantau statistik dokumen Kelurahan Pela Mampang</p>
         </div>
         <div className="text-right hidden md:block">
           <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">
@@ -64,7 +66,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCardV2
           label="Total Dokumen"
           value={stats.total_documents}
@@ -79,15 +81,23 @@ export default function Dashboard() {
           trend=""
           trendUp={true}
           icon={<ArrowDownRight className="text-white" size={24} />}
-          color="bg-emerald-500"
+          color="bg-blue-600"
         />
         <StatCardV2
           label="Surat Keluar"
           value={stats.surat_keluar}
           trend=""
-          trendUp={true} // Neutral
+          trendUp={true}
           icon={<ArrowUpRight className="text-white" size={24} />}
-          color="bg-orange-500"
+          color="bg-slate-700"
+        />
+        <StatCardV2
+          label="Dokumen Lainnya"
+          value={stats.dokumen_lainnya}
+          trend=""
+          trendUp={true}
+          icon={<File className="text-white" size={24} />}
+          color="bg-slate-500"
         />
       </div>
 
@@ -154,8 +164,8 @@ export default function Dashboard() {
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
                               item.jenis === 'masuk'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : 'bg-amber-100 text-amber-800'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-teal-100 text-teal-800'
                             }`}
                           >
                             {item.jenis || 'Unclassified'}
@@ -201,9 +211,9 @@ export default function Dashboard() {
               </Link>
               <Link
                 to="/search"
-                className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:border-purple-500 hover:bg-purple-50 transition-all group cursor-pointer"
+                className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:border-slate-400 hover:bg-slate-50 transition-all group cursor-pointer"
               >
-                <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center group-hover:bg-slate-700 group-hover:text-white transition-colors">
                   <Search size={20} />
                 </div>
                 <div>
@@ -215,16 +225,19 @@ export default function Dashboard() {
           </div>
 
           {/* System Status / Tips */}
-          <div className="bg-slate-900 rounded-xl shadow-lg p-6 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl shadow-lg p-6 text-white relative overflow-hidden border border-slate-700">
             <div className="relative z-10">
-              <h3 className="font-semibold text-lg mb-2">Tips Admin</h3>
-              <p className="text-slate-300 text-sm mb-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <h3 className="font-semibold text-lg">Tips</h3>
+              </div>
+              <p className="text-slate-300 text-sm leading-relaxed">
                 Pastikan format penamaan file konsisten untuk mempermudah pencarian otomatis oleh
                 sistem.
               </p>
             </div>
             {/* Decor */}
-            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-primary-500/30 rounded-full blur-2xl"></div>
+            <div className="absolute -bottom-8 -right-8 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl"></div>
           </div>
         </div>
       </div>

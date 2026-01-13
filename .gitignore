@@ -49,22 +49,37 @@ frontend/node_modules/
 frontend/dist/
 
 # Database & Local Data
-data/
 *.db
+*.db-journal
 *.sqlite
 *.sqlite3
-storage/arsip_kelurahan/
+storage/arsip_kelurahan/**/*.pdf
+storage/arsip_kelurahan/**/*.docx
 storage/uploads/
 storage/tmp_ocr/
+app/storage/
 
 # Logs
 *.log
 logs/
+*.log.*
+
+# Test & Debug files
+dev-scripts/
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 # Project-specific
 .vscode/
 *.pid
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Frontend specific
+frontend/.vite/
+frontend/coverage/

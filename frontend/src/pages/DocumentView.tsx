@@ -4,6 +4,16 @@ import { useDocument } from '../hooks/useDocument';
 import { useDocumentFile } from '../hooks/useDocumentFile';
 import { useDocumentText } from '../hooks/useDocumentText';
 import { Document, Page, pdfjs } from 'react-pdf';
+import {
+  ChevronRight,
+  Download,
+  FileText,
+  ZoomIn,
+  ZoomOut,
+  Search,
+  ChevronUp,
+  ChevronDown,
+} from 'lucide-react';
 
 // Point pdfjs worker to CDN (vite dev) or local in production; using CDN here for simplicity
 pdfjs.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@3.12.313/build/pdf.worker.min.js`;
@@ -215,73 +225,95 @@ export default function DocumentView() {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <div className="col-span-2">
-        <div className="bg-white p-4 rounded shadow">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-medium">Document Preview</h2>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className="px-2 py-1 border rounded"
-                disabled={currentPage <= 1}
-              >
-                Prev
-              </button>
-              <div className="text-sm">Page</div>
-              <input
-                type="number"
-                value={currentPage}
-                min={1}
-                max={numPages}
-                onChange={(e) =>
-                  setCurrentPage(Math.max(1, Math.min(numPages, Number(e.target.value) || 1)))
-                }
-                className="w-16 border px-2 py-1 rounded text-sm"
-              />
-              <div className="text-sm">/ {numPages}</div>
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <h1 className="text-2xl font-bold text-slate-900">{doc?.perihal || 'Dokumen'}</h1>
+        <p className="text-slate-600 text-sm mt-2">
+          ID: {doc?.id} • Tipe: {doc?.mime_type || 'Unknown'}
+        </p>
+      </div>
 
-              <button
-                onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
-                className="px-2 py-1 border rounded"
-                disabled={currentPage >= numPages}
-              >
-                Next
-              </button>
-
-              <div className="ml-4 flex items-center gap-2">
-                <button
-                  onClick={() => setScale((s) => Math.max(0.25, s - 0.25))}
-                  className="px-2 py-1 border rounded"
-                >
-                  -
-                </button>
-                <div className="text-sm">Zoom {Math.round(scale * 100)}%</div>
-                <button
-                  onClick={() => setScale((s) => Math.min(3, s + 0.25))}
-                  className="px-2 py-1 border rounded"
-                >
-                  +
-                </button>
-              </div>
-
+      {/* Tabs Navigation */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Preview Area */}
+        <div className="lg:col-span-2 space-y-4">
+          {/* Preview Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Pratinjau Dokumen</h2>
               {fileBlob && fileUrlRef.current && (
                 <a
-                  className="ml-4 text-sm text-blue-600"
                   href={fileUrlRef.current}
                   download={`document_${doc?.id}`}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-sm font-medium transition-colors"
                 >
+                  <Download size={16} />
                   Download
                 </a>
               )}
             </div>
-          </div>
 
-          <div className="mt-4 flex gap-4">
-            <div className="flex-1 border p-2 rounded">
+            {/* Preview Content */}
+            <div className="p-6">
               {fileBlob && doc?.mime_type?.includes('pdf') ? (
-                <div className="flex flex-col items-center">
-                  <div className="w-full flex justify-center mb-2">
+                <div className="space-y-4">
+                  {/* Page Controls */}
+                  <div className="flex items-center justify-between gap-4 flex-wrap bg-slate-50 p-4 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage <= 1}
+                        className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronUp size={18} />
+                      </button>
+                      <div className="flex items-center gap-2 min-w-[120px]">
+                        <span className="text-sm font-medium text-slate-600">Halaman</span>
+                        <input
+                          type="number"
+                          value={currentPage}
+                          min={1}
+                          max={numPages}
+                          onChange={(e) =>
+                            setCurrentPage(
+                              Math.max(1, Math.min(numPages, Number(e.target.value) || 1)),
+                            )
+                          }
+                          className="w-12 border border-slate-300 px-2 py-1 rounded text-sm text-center"
+                        />
+                        <span className="text-sm text-slate-600">/ {numPages}</span>
+                      </div>
+                      <button
+                        onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
+                        disabled={currentPage >= numPages}
+                        className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronDown size={18} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
+                        className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors"
+                      >
+                        <ZoomOut size={18} />
+                      </button>
+                      <span className="text-sm font-medium text-slate-600 min-w-[60px] text-center">
+                        {Math.round(scale * 100)}%
+                      </span>
+                      <button
+                        onClick={() => setScale((s) => Math.min(2.5, s + 0.25))}
+                        className="p-2 border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors"
+                      >
+                        <ZoomIn size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* PDF Viewer */}
+                  <div className="bg-slate-100 rounded-lg p-4 flex flex-col items-center min-h-[400px] max-h-[600px] overflow-y-auto">
                     <Document
                       file={fileUrlRef.current}
                       onLoadSuccess={onDocumentLoadSuccess}
@@ -290,70 +322,123 @@ export default function DocumentView() {
                       <Page pageNumber={currentPage} scale={scale} loading={<Spinner />} />
                     </Document>
                   </div>
+
+                  {/* Thumbnails */}
+                  {numPages > 1 && (
+                    <div className="border-t border-slate-200 pt-4">
+                      <p className="text-sm font-medium text-slate-600 mb-3">Halaman lain</p>
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-[120px] overflow-x-auto">
+                        {Array.from({ length: Math.min(numPages, 20) }, (_, i) => (
+                          <Thumbnail key={i} pageNumber={i + 1} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : fileBlob ? (
-                <div>
-                  <a href={fileUrlRef.current} className="text-blue-600" download>
-                    Download file
-                  </a>
+                <div className="text-center py-12">
+                  <FileText size={48} className="mx-auto text-slate-400 mb-4" />
+                  <p className="text-slate-600">Format file tidak mendukung pratinjau</p>
                 </div>
               ) : (
-                <div className="text-sm text-gray-600">No preview available</div>
+                <div className="text-center py-12">
+                  <FileText size={48} className="mx-auto text-slate-400 mb-4" />
+                  <p className="text-slate-600">File tidak tersedia</p>
+                </div>
               )}
             </div>
+          </div>
 
-            <div className="w-32 overflow-y-auto max-h-[60vh]">
-              <div className="space-y-2">
-                {Array.from({ length: Math.max(0, numPages) }, (_, i) => (
-                  <Thumbnail key={i} pageNumber={i + 1} />
-                ))}
+          {/* OCR / Text Search Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+              <h3 className="font-semibold text-slate-900">Pencarian Teks</h3>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex gap-2">
+                <input
+                  ref={searchInputRef}
+                  value={searchText}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setSearchText(e.target.value)
+                  }
+                  placeholder="Cari dalam teks dokumen..."
+                  className="flex-1 border border-slate-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none"
+                />
+                {matchCount > 0 && (
+                  <div className="text-sm font-medium text-slate-600 flex items-center gap-1 px-3 py-2 bg-slate-50 rounded-lg min-w-max">
+                    {currentMatchIndex !== null ? `${currentMatchIndex + 1}` : '-'} / {matchCount}
+                  </div>
+                )}
+              </div>
+
+              {matchCount > 0 && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={prevMatch}
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                  >
+                    <ChevronUp size={16} />
+                    Sebelumnya
+                  </button>
+                  <button
+                    onClick={nextMatch}
+                    className="flex-1 px-3 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                  >
+                    <ChevronDown size={16} />
+                    Berikutnya
+                  </button>
+                </div>
+              )}
+
+              <div className="max-h-[300px] overflow-y-auto bg-slate-50 rounded-lg p-4 text-sm text-slate-700 leading-relaxed">
+                {text ? (
+                  renderTextWithMatches(text, searchText)
+                ) : (
+                  <p className="text-slate-500">Teks tidak tersedia</p>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded shadow mt-4">
-          <h3 className="text-md font-medium">Metadata</h3>
-          <pre className="text-sm mt-2">{doc ? JSON.stringify(doc, null, 2) : 'Loading...'}</pre>
-        </div>
-      </div>
-
-      <div>
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="text-md font-medium">OCR / Extracted text</h3>
-          <div className="mt-2 mb-2 flex gap-2">
-            <input
-              ref={searchInputRef}
-              value={searchText}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchText(e.target.value)}
-              placeholder="Cari di teks (highlight)"
-              className="border px-2 py-1 rounded w-full text-sm"
-            />
-            <div className="flex items-center gap-1">
-              <button
-                onClick={prevMatch}
-                className="px-2 py-1 border rounded"
-                disabled={matchCount === 0}
-              >
-                Prev
-              </button>
-              <button
-                onClick={nextMatch}
-                className="px-2 py-1 border rounded"
-                disabled={matchCount === 0}
-              >
-                Next
-              </button>
+        {/* Sidebar: Metadata */}
+        <div className="lg:col-span-1">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden sticky top-4">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200">
+              <h3 className="font-semibold text-slate-900">Metadata</h3>
             </div>
-          </div>
-
-          <div className="text-sm text-gray-600 mb-2">
-            Matches: {matchCount}{' '}
-            {matchCount > 0 && ` — ${(currentMatchIndex ?? 0) + 1} / ${matchCount}`}
-          </div>
-
-          <div className="mt-2 text-sm whitespace-pre-wrap max-h-[60vh] overflow-auto">
-            {renderTextWithMatches(text, searchText)}
+            <div className="p-6 space-y-4">
+              {doc ? (
+                <>
+                  <div className="space-y-3">
+                    {[
+                      { label: 'Nomor Surat', key: 'nomor_surat' },
+                      { label: 'Perihal', key: 'perihal' },
+                      { label: 'Sifat', key: 'sifat' },
+                      { label: 'Jenis', key: 'jenis' },
+                      { label: 'Tahun', key: 'tahun' },
+                      { label: 'Tanggal Surat', key: 'tanggal_surat' },
+                      { label: 'Pengirim', key: 'pengirim' },
+                      { label: 'Penerima', key: 'penerima' },
+                    ].map(({ label, key }) =>
+                      (doc as any)[key] ? (
+                        <div key={key} className="border-b border-slate-100 pb-3 last:border-b-0">
+                          <p className="text-xs font-semibold text-slate-500 uppercase mb-1">
+                            {label}
+                          </p>
+                          <p className="text-sm text-slate-900 break-words">
+                            {String((doc as any)[key])}
+                          </p>
+                        </div>
+                      ) : null,
+                    )}
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm text-slate-500 text-center py-8">Loading...</div>
+              )}
+            </div>
           </div>
         </div>
       </div>

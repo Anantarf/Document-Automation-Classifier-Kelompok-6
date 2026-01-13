@@ -4,17 +4,56 @@ Sistem manajemen arsip digital untuk **Kelurahan Pela Mampang** menggunakan Fast
 
 Sistem ini otomatis mengklasifikasi, mengindeks, dan menyimpan dokumen surat masuk/keluar dengan ekstraksi metadata cerdas (OCR untuk PDF scan).
 
+## 🖼️ Screenshots
+
+![Dashboard](docs/screenshots/dashboard.png)
+![Upload](docs/screenshots/upload.png)
+![Search](docs/screenshots/search.png)
+![Preview](docs/screenshots/preview.png)
+
 ## ✨ Fitur Utama
 
 - 📄 **Upload Dokumen**: DOCX & PDF dengan validasi otomatis
 - 🔤 **Ekstraksi Teks**: Parser native + OCR Tesseract untuk PDF scan
-- 🤖 **Klasifikasi Otomatis**: Surat masuk vs keluar (rule-based)
+- 🤖 **Klasifikasi Otomatis**: Surat masuk vs keluar (rule-based + ML ready)
 - 📊 **Parsing Metadata**: Nomor surat, tanggal, perihal, pengirim/penerima (regex)
-- 📁 **Auto-Foldering**: Penyimpanan terstruktur per tahun/jenis surat
-- 🔍 **Pencarian Metadata**: Filter berdasarkan tahun, jenis, nomor, perihal
+- 📁 **Auto-Foldering**: Penyimpanan terstruktur per tahun/bulan/jenis
+- 🔍 **Pencarian Canggih**: Hierarchical browser + global search
+- 📥 **Preview Modal**: Full-screen document preview dengan metadata
 - 📦 **Ekspor Data**: ZIP arsip per tahun/jenis + CSV metadata
-- 🛡️ **Keamanan**: JWT authentication, CORS controlled
-- 📱 **UI Modern**: React + Tailwind CSS responsive design
+- 🛡️ **Keamanan**: JWT authentication, role-based access control
+- 📱 **UI Modern**: React + TypeScript + Tailwind CSS responsive design
+- ⚡ **Performance**: React Query caching, optimistic updates
+
+## 🛠️ Tech Stack
+
+### Backend
+
+- **Framework**: FastAPI 0.104.1 (Python 3.9+)
+- **Database**: SQLite 3 with SQLAlchemy 2.0 ORM
+- **Authentication**: JWT (HS256) with Bearer tokens
+- **OCR**: Tesseract + pytesseract
+- **PDF Processing**: PyMuPDF (fitz), PyPDF2
+- **DOCX Processing**: python-docx
+- **Machine Learning Ready**: Placeholder for classifier model (data/classifier.pkl)
+
+### Frontend
+
+- **Framework**: React 18.3 + TypeScript 5.6
+- **Build Tool**: Vite 5.4.21
+- **Styling**: Tailwind CSS 3.4
+- **State Management**: React Query (TanStack Query) 4.34
+- **Forms**: React Hook Form + react-dropzone
+- **PDF Viewer**: react-pdf (pdfjs-dist 3.12.313)
+- **Icons**: Lucide React
+- **HTTP Client**: Axios with interceptors
+
+### DevOps
+
+- **Containerization**: Docker + Docker Compose
+- **Web Server**: Uvicorn (ASGI)
+- **CORS**: Configured for localhost development
+- **Environment**: .env configuration
 
 ## 🚀 Quick Start
 
@@ -71,7 +110,65 @@ Frontend akan berjalan di `http://localhost:5173`
 - **Username**: `pelamampang`
 - **Password**: `pelamampang123`
 
-> ⚠️ Ubah password ini setelah first login di production!
+> ⚠️ **PENTING**: Ubah password ini setelah first login di production!
+
+## 🐳 Docker Deployment
+
+```bash
+# Build and run with docker-compose
+docker-compose up -d
+
+# Check logs
+docker-compose logs -f
+
+# Stop containers
+docker-compose down
+```
+
+Services akan tersedia di:
+
+- Backend: `http://localhost:8000`
+- Frontend: `http://localhost:3000`
+- API Docs: `http://localhost:8000/docs`
+
+## 🌐 Production Deployment
+
+### Backend
+
+1. Update `.env` dengan production values:
+   ```dotenv
+   APP_ENV=production
+   APP_DEBUG=false
+   SECRET_KEY=<generate-strong-secret-key>
+   CORS_ORIGINS=https://yourdomain.com
+   ```
+2. Use production ASGI server:
+   ```bash
+   gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
+   ```
+3. Setup Nginx reverse proxy
+4. Enable HTTPS with SSL certificates
+
+### Frontend
+
+1. Build for production:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+2. Serve `dist/` folder with Nginx/Apache
+3. Update `VITE_API_BASE` to production API URL
+4. Configure CSP headers
+
+### Database
+
+- For production scale, consider migrating to PostgreSQL
+- Setup regular backups (SQLite → `.db` file backup)
+- Implement audit logging for compliance
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed production setup guide.
+
+## 📋 Default Login
 
 ## 📁 Struktur Direktori
 
@@ -173,3 +270,81 @@ Contoh respons ketika OCR tersedia:
 ```
 
 Jika `ocr` false, cek `README` bagian OCR setup dan pastikan Tesseract terinstal serta `TESSERACT_CMD` di `.env` mengarah ke executable yang benar.
+
+---
+
+## 🧪 Testing
+
+### Backend Tests
+
+```bash
+# Run unit tests
+pytest tests/
+
+# Test specific module
+python tests/test_text_extractor.py
+python tests/test_nomor_surat.py
+```
+
+### Frontend Tests
+
+```bash
+cd frontend
+
+# Run unit tests
+npm test
+
+# Run with coverage
+npm run test:coverage
+```
+
+## 🔧 Maintenance
+
+- **Backup Database**: Copy `data/app.db` regularly
+- **Clear Temp Files**: Cleanup `storage/uploads/` dan `storage/tmp_ocr/` periodically
+- **Update ML Model**: Replace `data/classifier.pkl` with retrained model
+- **Monitor Storage**: Check `storage/arsip_kelurahan/` disk usage
+
+See [MAINTENANCE.md](MAINTENANCE.md) for detailed maintenance procedures.
+
+## 📚 Documentation
+
+- **API Documentation**: `http://localhost:8000/docs` (Swagger UI)
+- **API Redoc**: `http://localhost:8000/redoc`
+- **Deployment Guide**: [DEPLOYMENT.md](DEPLOYMENT.md)
+- **Maintenance Guide**: [MAINTENANCE.md](MAINTENANCE.md)
+- **Security Practices**: [SECURITY.md](SECURITY.md)
+
+## 👥 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is for educational purposes (P3L - Sistem Informasi).
+
+## 🤝 Team
+
+**Kelompok 6 - Sistem Informasi**
+
+- Ananta Raihan Fahrezi
+- [Other team members]
+
+**Instansi**: Kelurahan Pela Mampang, Jakarta Selatan
+
+## 📞 Support
+
+For issues or questions:
+
+- Open an issue on GitHub
+- Contact: [your-email@example.com]
+
+---
+
+Made with ❤️ for Kelurahan Pela Mampang

@@ -1,0 +1,351 @@
+Paparan Sosialisasi
+
+TATA CARA PENGISIAN DATA PENDUKUNG 
+MANAJEMEN TALENTA MELALUI SI PETKOM
+https://kompetensi.jakarta.go.id
+Bagi PNS dan Verifikator Perangkat Daerah/Biro
+
+Badan Kepegawaian Daerah
+Provinsi DKI Jakarta
+
+Jakarta, 13 Januari 2025
+
+IMPLEMENTASI MANAJEMEN TALENTA
+1. Manajemen  Talenta  PNS  Pemprov  DKI  Jakarta  mulai  diterapkan  tahun  2022  untuk 
+penguatan  meritokrasi  dalam  pengisian  jabatan  manajerial  berdasarkan  kompetensi, 
+kualifikasi, potensi, kinerja, rekam jejak jabatan, dsb.
+
+2. Manajemen Talenta PNS dikelola melalui Sistem Informasi Manajemen Talenta (SI Talent 
+Pool) yang terintegrasi dengan beberapa sistem/aplikasi layanan kepegawaian lainnya, yaitu: 
+SIMPEG (BKD dan Diskominfotik), SI Petkom (BKD), dan SIMDIKLAT (BPSDM).
+
+3. Indeks  Penilaian  Sistem  Merit  (IPSM)  DKI  Jakarta  tahun  2024  sebesar  350,5,  kategori 
+“sangat  baik”,  namun  BKN  belum  memberikan  rekomendasi  pengisian  jabatan  pimpinan 
+tinggi  (JPT)  melalui  manajemen  talenta,  sehingga  DKI  masih  tetap  harus  melaksanakan 
+Seleksi Terbuka.
+
+4. Upaya BKD adalah mengupgrade SI Talent Pool, melalui:
+
+a. Penyesuaian parameter penilaian Manajemen Talenta menjadi lebih kompleks.
+b. Melibatkan  seluruh  PNS  dan  verifikator  pada  setiap  perangkat  daerah/biro  untuk 
+melakukan  pemutakhiran  data  penunjang  Manajemen  Talenta  melalui  Si  Petkom 
+(https://kompetensi.jakarta.go.id).
+
+UPGRADE SI TALENT POOL
+
+( https://talentpool.jakarta.go.id/ )
+
+upgrade
+
+SI TALENT POOL 2022
+
+SI TALENT POOL 2025
+
+SIMPEG
+
+SI PETKOM
+
+SIMPEG
+
+SI PETKOM
+
+SIMDIKLAT
+
+HUBUNGAN SI TALENT POOL
+
+dengan sistem/aplikasi layanan kepegawaian lainnya
+
+SIMPEG
+
+SI TALENT POOL
+
+SI PETKOM
+
+Data yang diintegrasikan:
+• Predikat Kinerja
+• Rekam Jejak Jabatan:
+- Pendidikan Formal 
+- Pangkat/Golongan Ruang
+- Riwayat dalam jabatan
+- Penghargaan (Masa kerja dari Presiden 
+& Gubernur)
+- Hukuman Disiplin/ Kode Etik)
+• Pengembangan Karier lainnya:
+
+Plt dalam jabatan setingkat lebih tinggi 
+dan setara)
+
+Data yang diintegrasikan:
+• Potensi
+• Kompetensi
+
+• Hasil Karya/Kreatifitas
+• Partisipasi Dalam Tim/Pokja
+• Pengembangan Karier 
+
+Lainnya (Agen Perubahan, 
+PPK, PPBJ, Pengurus Barang, 
+Bendahara, PPTK)
+
+• Penghargaan (selain masa 
+
+kerja)
+
+• Tugas Pendukung
+
+SIMDIKLAT
+
+Pemutakhiran 
+Data Penunjang 
+Manajemen 
+Talenta
+
+Data yang diintegrasikan:
+- Diklat Manajerial/Kepemimpinan
+- Diklat Teknis/Fungsional
+Termasuk melalui: SiJule, Podcast 
+(Rabu Belajar, Kopi Sedap), dan 
+Seminar
+
+ALUR PROSES DATA MANAJEMEN TALENTA
+
+G
+E
+P
+M
+I
+S
+
+M
+O
+K
+T
+E
+P
+
+I
+S
+
+I
+
+T
+A
+L
+K
+D
+M
+I
+S
+
+Hasil Pemetaan PNS ke dalam 9 Kuadran
+
+L
+O
+O
+P
+T
+N
+E
+L
+A
+T
+I
+S
+
+- PNS dalam Kuadaran 
+7, 8 & 9 masuk ke 
+dalam KRS (Kelompok 
+Rencana Suksesi)
+
+- PNS dalam Kuadran 9 
+
+(Suksesor) akan 
+diprioritaskan untuk 
+diangkat dalam 
+Jabatan Manajerial 
+dan masuk Portal 
+Manajemen Talenta 
+Nasional (Mobilitas 
+Talenta)
+
+ 
+ 
+ 
+TAMPILAN LAYAR SI TALENT POOL 2024
+(periode 6 Desember 2024)
+
+Kelompok Rencana Suksesi (KRS): 
+Talenta dalam kuadran 7, 8 & 9
+
+Suksesor 
+(kuadran 9)
+
+Hasil Pemetaan Talenta PNS di lingkungan PemProv DKI Jakarta
+
+HAL-HAL YANG PERLU DIPERSIAPKAN
+Input Data Pendukung Manajemen Talenta melalui SI Petkom
+
+1. Memastikan  data  Pegawai  sudah  valid,  tidak  ada  kesalahan  atau  belum 
+
+lengkap, misal: Data Pendidikan, Riwayat Jabatan, dsb.
+
+2. Mempersiapkan  akun  Pejabat  atau  PNS  yang  akan  ditugaskan  sebagai 
+
+Verifikator pada setiap Perangkat Daerah/Biro. 
+
+3. Mempersiapkan berkas/dokumen/evidence yang sah, seperti: Sertifikat, Surat 
+Keputusan,  Surat  Tugas,  Surat  Keterangan,  dsb  yang  masih  berlaku  sesuai 
+ketentuan.
+
+4. Mempelajari  Tata  Cara  Penginputan  Data  Pendukung  Manajemen  Talenta 
+melalui  SI  Petkom  (https://kompetensi.jakarta.go.id).  Silahkan  klik  tautan  ini 
+(https://drive.google.com/drive/folders/1u5nJqW3NaWYwyZ0CiGiP5Z7hqnW
+MExFO?usp=drive_link).
+
+TUGAS VERIFIKATOR PD/BIRO
+Input Data Pendukung Manajemen Talenta melalui SI Petkom
+
+TUGAS PIC TIM MANAJEMEN 
+TALENTA BKD
+
+1. Melakukan  verifikasi  data  pendukung 
+Manajemen Talenta melalui SI Petkom 
+PNS 
+bawah 
+berada 
+koordinasinya.
+
+yang 
+
+di 
+
+1. Melakukan  verifikasi  dan  validasi 
+data  pendukung  Manajemen  Talenta 
+melalui  SIPetkom  bagi  PNS  pada 
+rumpun jabatan yang ditugaskan.
+
+2. Melakukan  koordinasi  dengan  Tim 
+Manajemen  Talenta  BKD  sesuai  PIC 
+berdasarkan rumpun jabatan.
+
+2. Melakukan 
+Verifikator 
+PD/Biro sesuai rumpun jabatan.
+
+dengan 
+koordinasi 
+pada  masing-masing 
+
+3. Melaporkan  hasil  kegiatan  kepada 
+Kepala Perangkat Daerah/Biro masing-
+masing.
+
+3. Melaporkan  hasil  kegiatan  kepada 
+
+Kepala BKD Provinsi DKI Jakarta.
+
+VALIDATOR PADA MASING-MASING 
+RUMPUN JABATAN
+
+No
+
+Nama
+
+1 Indria Maulina
+Renny Irmawati
+
+2 Rahmadika Roma Putra
+
+Panca Silvita
+
+3 Ichsan Yudhianto
+
+Wahyani
+
+4 Finky Sudradjat
+
+Muhammad Subur
+
+Rumpun Jabatan
+
+Pemerintahan
+
+Keterangan
+
+22 PD/Biro
+
+Perekonomian dan 
+Keuangan
+
+Pembangunan dan 
+Lingkungan Hidup
+
+13 PD/Biro
+
+7 PD/Biro
+
+Kesejahteraan Rakyat
+
+9 PD/Biro
+
+Data Pendukung Manajemen Talenta
+
+Ada  5  data  pendukung  Manajemen  Talenta 
+Pemprov  DKI  Jakarta  melalui  Aplikasi  Si 
+Petkom, antara lain:
+1. Hasil Karya/Kreatifitas
+2. Penghargaan dan Prestasi
+3. Partisipasi Organisasi/Tim Kerja
+4. Pengalaman Dalam Jabatan
+5. Tugas Pendukung
+
+Apa yang dapat dilakukan 
+melalui Aplikasi SI Petkom ?
+
+1. Melihat Data Hasil Input
+2. Menambahkan Data
+3. Mengedit Data
+4. Menghapus Data
+
+T E R I M A   K A S I H
+T H A N K   Y O U
+
+Apakah yang dimaksud dengan Manajemen Talenta ?
+
+sistem  manajemen  karier  PNS  yang  meliputi  tahapan 
+akuisisi,  pengembangan,  retensi,  dan  penempatan  talenta 
+target 
+yang  diprioritaskan  untuk  menduduki 
+berdasarkan tingkatan potensial dan kinerja tertinggi melalui 
+makanisme  tertentu  yang  dilaksanakan  secara  efektif  dan 
+berkelanjutan  untuk  memenuhi  kebutuhan 
+instansi 
+pemerintah dalam rangka akselerasi pembangunan daerah.
+
+jabatan 
+
+Mengapa kita wajib melaksanakan Manajemen Talenta?
+
+•
+
+•
+
+Pasal 8 ayat (2) Permenpan RB No. 3 Tahun 2020 tentang Manajemen Talenta 
+
+ASN,  dijelaskan  bahwa 
+
+Instansi  Pemerintah  Wajib  menyelenggarakan 
+
+Manajemen  Talenta  ASN  Instansi  berdasarkan  analisis  kebutuhan  yang 
+
+mengacu  pada  pencapaian  visi,  misi,  tujuan,  dan  sasaran,  serta  strategi 
+
+organisasi guna mewujudkan prioritas pembangunan nasional. 
+
+Pasal  46  UU  No.  20  Tahun  2023  tentang  ASN,  dijelaskan  dalam  ayat  (2) 
+
+“pengembangan  talenta  dan  karier  dilaksanakan  melalui  mobilitas  talenta” 
+
+dan  ayat  (4)  “mobilitas  talenta  diselenggarakan  berdasarkan  sistem  merit 
+
+melalui manajemen talenta”.

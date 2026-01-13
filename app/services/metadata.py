@@ -6,7 +6,7 @@ Disesuaikan untuk pola surat Kelurahan DKI:
 - Nomor contoh: 655-HM.03.04 (OCR bisa memberi '/-' -> dibersihkan).
 - Label umum: Nomor, Sifat, Lampiran, Hal/Perihal.
 - Tanggal format Indonesia: 12 Desember 2025.
-- Jenis: 'masuk' vs 'keluar' heuristik dari kop, 'Kepada Yth', token 'SM'/'SK', 'Tembusan', filename.
+- Jenis: 'masuk' vs 'keluar' - uses ML classifier if available, otherwise heuristics.
 """
 
 import logging
@@ -15,6 +15,15 @@ from datetime import datetime
 from typing import Dict, Optional
 
 log = logging.getLogger(__name__)
+
+# Try to import ML classifier
+try:
+    from app.services.classifier_ml import classify as ml_classify
+    USE_ML_CLASSIFIER = True
+    log.info("✅ ML Classifier available for metadata extraction")
+except ImportError:
+    USE_ML_CLASSIFIER = False
+    log.info("ℹ️  Using rule-based classification (ML classifier not available)")
 
 BULAN_ID = {
     'januari': 1, 'februari': 2, 'maret': 3, 'april': 4, 'mei': 5, 'juni': 6,
@@ -187,11 +196,24 @@ def decide_tahun(
 
 def detect_jenis(text: str, nomor: Optional[str] = None, filename: Optional[str] = None) -> Optional[str]:
     """
-    Heuristik Jenis Surat (Pela Mampang Rules):
-    1. Surat Keluar: Jika KOP SURAT mengandung 'KELURAHAN PELA MAMPANG'.
-    2. Surat Masuk: Jika KOP SURAT TIDAK mengandung 'KELURAHAN PELA MAMPANG' (berarti dari instansi lain).
-    3. Cop-out/Fallback: Jika Kop tidak terdeteksi jelas, cek nomor surat/filename untuk kode helper.
+    Deteksi jenis surat (masuk atau keluar).
+    1. Try ML classifier if available (confidence > 0.7)
+    2. Fallback to heuristics: KOP detection, nomor patterns, filename
     """
+    # Try ML classifier first if available and text is sufficient
+    if USE_ML_CLASSIFIER and text and len(text.strip()) > 50:
+        try:
+            jenis, confidence = ml_classify(text)
+            # Use ML prediction if high confidence
+            if confidence > 0.7:
+                log.info(f"ML Classifier: {jenis} (confidence: {confidence:.2%})")
+                return jenis
+            else:
+                log.debug(f"ML Classifier low confidence ({confidence:.2%}), using rules")
+        except Exception as e:
+            log.warning(f"ML classification failed: {e}, falling back to rules")
+    
+    # Fallback to rule-based heuristics
     T = _clean_text(text)
     
     # --- Rule 1 Only: Kop Detection for Pela Mampang ---

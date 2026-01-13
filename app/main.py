@@ -39,8 +39,13 @@ except Exception:
     # dotenv opsional; kalau tidak ada tetap lanjut
     pass
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi.responses import JSONResponse
 
 # 2) Import config & database (settings sekarang ada di config.py)
 from app.config import settings, ensure_dirs
@@ -107,7 +112,7 @@ async def lifespan(app: FastAPI):
     # SHUTDOWN: tempat menutup resource jika perlu
     log.info("[shutdown] Document Automation Classifier stopped.")
 
-# ----- Buat app FastAPI -----
+
 app = FastAPI(
     title="Document Automation Classifier",
     description=(
@@ -149,13 +154,61 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ----- Rate Limiting (slowapi) -----
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, lambda request, exc: JSONResponse(
+    status_code=429,
+    content={"detail": "Too many requests. Please try again later."},
+))
+
+# ----- Security Headers Middleware -----
+# TEMPORARILY DISABLED FOR DEBUGGING
+# @app.middleware("http")
+# async def add_security_headers(request: Request, call_next):
+#     response = await call_next(request)
+#     
+#     # HSTS: Force HTTPS (1 year)
+#     # response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+#     
+#     # Prevent clickjacking
+#     # response.headers["X-Frame-Options"] = "DENY"
+#     
+#     # Prevent MIME type sniffing
+#     # response.headers["X-Content-Type-Options"] = "nosniff"
+#     
+#     # XSS Protection
+#     # response.headers["X-XSS-Protection"] = "1; mode=block"
+#     
+#     # Content Security Policy
+#     # response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+#     
+#     # Referrer Policy
+#     # response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+#     
+#     # Permissions Policy
+#     # response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+#     
+#     # Remove server info (don't expose FastAPI/Python version)
+#     # response.headers.pop("server", None)
+#     
+#     return response
+
+# ----- Trusted Host Middleware -----
+# Uncomment for production, specify allowed hosts
+# app.add_middleware(
+#     TrustedHostMiddleware,
+#     allowed_hosts=["yourdomain.com", "www.yourdomain.com"],
+# )
+
 # ----- Root & Health -----
 @app.get("/", tags=["Root"])
 def root():
     return {"app": "Document Automation Classifier", "status": "ok"}
 
 @app.get("/healthz", tags=["Root"])
-def healthz():
+@limiter.limit("100/minute")
+def healthz(request: Request):
     # Bisa ditambah cek sederhana (misal file DB ada, storage dapat ditulis, dsb.)
     return {"status": "healthy"}
 

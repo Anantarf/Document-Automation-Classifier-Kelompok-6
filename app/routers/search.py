@@ -26,10 +26,12 @@ def get_stats(db: Session = Depends(get_db)):
     total_docs = db.query(Document).count()
     masuk = db.query(Document).filter(Document.jenis == 'masuk').count()
     keluar = db.query(Document).filter(Document.jenis == 'keluar').count()
+    lainnya = db.query(Document).filter(Document.jenis == 'lainnya').count()
     return {
         "total_documents": total_docs,
         "surat_masuk": masuk,
-        "surat_keluar": keluar
+        "surat_keluar": keluar,
+        "dokumen_lainnya": lainnya
     }
 
 
@@ -37,11 +39,13 @@ def get_stats(db: Session = Depends(get_db)):
 @router.get("/", response_model=List[DocumentRead], summary="Cari dokumen")
 def search_documents(
     tahun: Optional[int] = Query(None, description="Tahun surat (mis. 2025)"),
+    year: Optional[int] = Query(None, description="Alias untuk tahun (untuk kompatibilitas frontend)"),
     jenis: Optional[str] = Query(None, description="Jenis surat: 'masuk' atau 'keluar'"),
     nomor: Optional[str] = Query(None, max_length=100, description="Nomor surat (partial match, case-insensitive, max 100 chars)"),
     nomor_surat: Optional[str] = Query(None, max_length=100, description="Alias untuk 'nomor' (partial match, max 100 chars)"),
     perihal: Optional[str] = Query(None, max_length=500, description="Perihal (partial match, case-insensitive, max 500 chars)"),
     bulan: Optional[str] = Query(None, description="Bulan (partial match in tanggal_surat, e.g. 'Januari')"),
+    q: Optional[str] = Query(None, max_length=500, description="Global search - mencari di nomor_surat, perihal, dan tanggal_surat"),
     limit: int = Query(100, ge=1, le=1000, description="Batas jumlah hasil"),
     offset: int = Query(0, ge=0, description="Offset/paging"),
     sort_by: Optional[str] = Query(None, description="Kolom untuk sorting: 'uploaded_at'|'id'|'tahun'"),
@@ -60,52 +64,65 @@ def search_documents(
             detail="jenis harus 'masuk', 'keluar', atau 'lainnya'"
         )
 
-    q = db.query(Document)
-
-    if tahun is not None:
-        q = q.filter(Document.tahun == tahun)
+    query = db.query(Document)
+    
+    # Support both 'tahun' and 'year' parameters
+    tahun_value = tahun or year
+    if tahun_value is not None:
+        query = query.filter(Document.tahun == tahun_value)
 
     if jenis:
-        q = q.filter(Document.jenis == jenis)
+        query = query.filter(Document.jenis == jenis)
 
-    # Pakai alias: nomor OR nomor_surat
-    nomor_term = nomor or nomor_surat
-    if nomor_term:
-        term = nomor_term.strip().lower()
-        q = q.filter(func.lower(Document.nomor_surat).like(f"%{term}%"))
+    # Global search with 'q' parameter - searches across multiple fields
+    if q:
+        search_term = q.strip().lower()
+        # Handle NULL values by using coalesce to treat NULL as empty string
+        query = query.filter(
+            (Document.nomor_surat.isnot(None) & func.lower(Document.nomor_surat).like(f"%{search_term}%")) |
+            (Document.perihal.isnot(None) & func.lower(Document.perihal).like(f"%{search_term}%")) |
+            (Document.tanggal_surat.isnot(None) & func.lower(Document.tanggal_surat).like(f"%{search_term}%"))
+        )
+    else:
+        # Specific field searches (only if 'q' is not used)
+        # Pakai alias: nomor OR nomor_surat
+        nomor_term = nomor or nomor_surat
+        if nomor_term:
+            term = nomor_term.strip().lower()
+            query = query.filter(
+                Document.nomor_surat.isnot(None) & func.lower(Document.nomor_surat).like(f"%{term}%")
+            )
 
-    # Filter Bulan logic
-    # Expects string like "Januari", "Februari", etc.
-    if bulan:
-        term = bulan.strip().lower()
-        # tanggal_surat is e.g. "12 Januari 2025" or "12-01-2025"??
-        # Usually metadata sets it as "d B Y". 
-        # So we look for the month name inside.
-        q = q.filter(func.lower(Document.tanggal_surat).like(f"%{term}%"))
+        # Filter Bulan logic - now using dedicated bulan column
+        if bulan:
+            term = bulan.strip()
+            # Direct match on bulan column (case-insensitive)
+            query = query.filter(
+                Document.bulan.isnot(None) & (func.lower(Document.bulan) == term.lower())
+            )
 
-    if perihal:
-        term = perihal.strip().lower()
-        q = q.filter(func.lower(Document.perihal).like(f"%{term}%"))
-
-    # Total count for pagination header
-    total = q.count()
+        if perihal:
+            term = perihal.strip().lower()
+            query = query.filter(
+                Document.perihal.isnot(None) & func.lower(Document.perihal).like(f"%{term}%")
+            )
 
     # Sorting
     if sort_by in {'uploaded_at', 'id', 'tahun'}:
         col = getattr(Document, sort_by)
         if sort_dir == 'asc':
-            q = q.order_by(col.asc())
+            query = query.order_by(col.asc())
         else:
-            q = q.order_by(col.desc())
+            query = query.order_by(col.desc())
     else:
         # default ordering
-        q = q.order_by(Document.uploaded_at.desc(), Document.id.desc())
+        query = query.order_by(Document.uploaded_at.desc(), Document.id.desc())
 
     # Get total count BEFORE adding limit/offset
-    total = q.count()
+    total = query.count()
 
     rows = (
-        q.offset(offset)
+        query.offset(offset)
          .limit(limit)
          .all()
     )
@@ -141,45 +158,23 @@ def get_months(
 ):
     """
     Returns list of months (names) found in documents for specific year/jenis.
-    Since tanggal_surat is string, we must fetch and parse distinct values.
-    Supports both Indonesian and English month names.
+    Now uses dedicated bulan column for accurate categorization.
     """
-    # Optimized: fetch only needed columns
-    docs = db.query(Document.tanggal_surat).filter(
+    # Query distinct bulan values
+    months = db.query(Document.bulan).filter(
         Document.tahun == tahun,
         Document.jenis == jenis,
-        Document.tanggal_surat.isnot(None)
-    ).all()
-
-    # Set of found months
-    found_months = set()
+        Document.bulan.isnot(None)
+    ).distinct().all()
     
-    # Month names mapping: both Indonesian and English
-    MONTHS_MAPPING = {
-        "Januari": "January", "Februari": "February", "Maret": "March",
-        "April": "April", "Mei": "May", "Juni": "June",
-        "Juli": "July", "Agustus": "August", "September": "September",
-        "Oktober": "October", "November": "November", "Desember": "December"
-    }
+    # Extract month names from query results
+    found_months = [m[0] for m in months if m[0]]
     
-    # All month names to search for (both languages)
-    ALL_MONTHS_ID = list(MONTHS_MAPPING.keys())
-    ALL_MONTHS_EN = list(MONTHS_MAPPING.values())
-    ALL_MONTH_NAMES = ALL_MONTHS_ID + ALL_MONTHS_EN
+    # Sort chronologically using Indonesian month order
+    MONTHS_ORDER = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ]
     
-    for (t_str,) in docs:
-        if not t_str: 
-            continue
-        t_lower = t_str.lower()
-        
-        # Try to find any month name (Indonesian or English)
-        for m in ALL_MONTH_NAMES:
-            if m.lower() in t_lower:
-                # Return Indonesian name for UI consistency
-                found_month = m if m in ALL_MONTHS_ID else [k for k, v in MONTHS_MAPPING.items() if v == m][0]
-                found_months.add(found_month)
-                break
-    
-    # Sort them chronologically using Indonesian month order
-    sorted_months = sorted(list(found_months), key=lambda x: ALL_MONTHS_ID.index(x))
+    sorted_months = sorted(found_months, key=lambda x: MONTHS_ORDER.index(x) if x in MONTHS_ORDER else 999)
     return sorted_months

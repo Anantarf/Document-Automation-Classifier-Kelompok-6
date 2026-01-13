@@ -1,10 +1,11 @@
 export type Document = {
   id: number;
-  tahun: number;
-  jenis: "masuk" | "keluar";
+  tahun: number | null;
+  jenis: 'masuk' | 'keluar';
   nomor_surat?: string | null;
   perihal?: string | null;
   tanggal_surat?: string | null;
+  bulan?: string | null;
   pengirim?: string | null;
   penerima?: string | null;
   stored_path: string;

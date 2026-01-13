@@ -45,8 +45,16 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-card border border-slate-100 p-8 w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-slate-900">Buat Akun Baru</h1>
-          <p className="text-slate-500 mt-1">Daftar untuk mulai mengelola dokumen.</p>
+          <img
+            src="/logo-jakarta.png"
+            alt="Logo DKI Jakarta"
+            className="w-20 h-20 mx-auto mb-4 object-contain"
+          />
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Registrasi Akun</h1>
+          <p className="text-slate-700 mt-2 font-semibold leading-snug">Kelurahan Pela Mampang</p>
+          <p className="text-slate-500 text-sm mt-2 leading-normal">
+            Daftar untuk mulai mengelola dokumen
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

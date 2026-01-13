@@ -1,0 +1,27 @@
+{
+  "uploaded_at": "2026-01-13T08:58:34.373519Z",
+  "file_original": "original.pdf",
+  "mime_type": "application/pdf",
+  "size_bytes": 703712,
+  "hash_sha256": "fbde21221d77622dfcd02c3a265218818e180121864c2c7cd679de1f4e65f14f",
+  "ocr_enabled": true,
+  "text_path": "C:/Users/Ananta Raihan/Kuliah/SEMESTER 7/BISMILAH P3L BERES/storage/arsip_kelurahan/2025/keluar/718-2380/text.txt",
+  "source_filename": "SAMPLE SURAT KELUAR.pdf",
+  "tahun": 2025,
+  "jenis": "keluar",
+  "nomor": "718.2380",
+  "perihal": "Permohonan Turap Kali Mampang Yth. Kepala Suku Dinas",
+  "tanggal_surat": "30 January 2025",
+  "pengirim": null,
+  "penerima": null,
+  "parsed": {
+    "nomor": "718.2380",
+    "sifat": "Biasa",
+    "perihal": "Permohonan Turap Kali Mampang Yth. Kepala Suku Dinas",
+    "tanggal_surat": "30 January 2025",
+    "tahun": 2025,
+    "jenis": "keluar",
+    "pengirim": null,
+    "penerima": null
+  }
+}

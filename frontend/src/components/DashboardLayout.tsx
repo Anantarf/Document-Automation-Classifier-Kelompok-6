@@ -46,15 +46,17 @@ export default function DashboardLayout() {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="h-16 flex items-center px-6 border-b border-slate-100 shrink-0">
-          <Link
-            to="/"
-            className="text-xl font-bold text-primary-600 flex items-center gap-2 tracking-tight"
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary-600 text-white flex items-center justify-center">
-              <FileText size={18} strokeWidth={3} />
+        <div className="h-20 flex items-center px-4 border-b border-slate-100 shrink-0 bg-gradient-to-r from-blue-50 to-white">
+          <Link to="/" className="flex items-center gap-3 w-full">
+            <img
+              src="/logo-jakarta.png"
+              alt="Logo DKI Jakarta"
+              className="w-12 h-12 object-contain"
+            />
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-slate-800 leading-tight">Arsip Digital</span>
+              <span className="text-xs text-slate-600 font-semibold">Kelurahan Pela Mampang</span>
             </div>
-            Arsip Kelurahan
           </Link>
         </div>
 
@@ -65,14 +67,25 @@ export default function DashboardLayout() {
           <NavItem to="/" icon={<LayoutDashboard size={20} />}>
             Dashboard
           </NavItem>
-          {user?.role === 'admin' || user?.role === 'staf' ? (
-            <NavItem to="/upload" icon={<Upload size={20} />}>
-              Unggah Dokumen
-            </NavItem>
-          ) : null}
+          <NavItem to="/upload" icon={<Upload size={20} />}>
+            Unggah Dokumen
+          </NavItem>
           <NavItem to="/search" icon={<BookOpen size={20} />}>
             Pengarsipan
           </NavItem>
+
+          {/* Admin Only Menus */}
+          {user?.role === 'admin' && (
+            <>
+              <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 mt-6">
+                Admin
+              </p>
+              {/* Placeholder for future User Management or similar */}
+              {/* <NavItem to="/users" icon={<UserIcon size={20} />}>
+                 Kelola User
+               </NavItem> */}
+            </>
+          )}
         </div>
 
         <div className="p-4 border-t border-slate-100 bg-slate-50/50">
@@ -98,7 +111,7 @@ export default function DashboardLayout() {
       </aside>
 
       {/* Main Content Areas */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30">
           <button
@@ -169,11 +182,56 @@ export default function DashboardLayout() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
-          <div className="max-w-6xl mx-auto">
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto bg-slate-50">
+          <div className="max-w-6xl mx-auto mb-8">
             <Outlet />
           </div>
         </main>
+
+        {/* Footer */}
+        <footer className="border-t border-slate-200 bg-white mt-auto">
+          <div className="px-4 lg:px-8 py-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
+                {/* Alamat */}
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-3">Kelurahan Pela Mampang</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    Jl. Pela Mampang No.17
+                    <br />
+                    Kec. Mampang Prapatan
+                    <br />
+                    Jakarta Selatan 12790
+                  </p>
+                </div>
+
+                {/* Kontak */}
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-3">Kontak</h3>
+                  <p className="text-slate-600 leading-relaxed">
+                    Telp: (021) 7941234
+                    <br />
+                    Email: pelamampang@jakarta.go.id
+                    <br />
+                    Jam Layanan: 08.00 - 16.00 WIB
+                  </p>
+                </div>
+
+                {/* Sistem Info */}
+                <div>
+                  <h3 className="font-semibold text-slate-900 mb-3">Sistem Arsip Digital</h3>
+                  <p className="text-slate-600 leading-relaxed mb-3">
+                    Sistem manajemen arsip dokumen Kelurahan Pela Mampang untuk efisiensi
+                    administrasi pemerintahan.
+                  </p>
+                  <p className="text-slate-500 text-xs">
+                    © 2026 Kelurahan Pela Mampang. All rights reserved.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   );

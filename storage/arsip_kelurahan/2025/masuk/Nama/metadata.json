@@ -1,0 +1,27 @@
+{
+  "uploaded_at": "2026-01-13T09:00:27.399489Z",
+  "file_original": "original.pdf",
+  "mime_type": "application/pdf",
+  "size_bytes": 1419335,
+  "hash_sha256": "871a965bfbc4299b62f330d4a030e6d521a242be0b62bcb6e9cf99e3640ce53a",
+  "ocr_enabled": true,
+  "text_path": "C:/Users/Ananta Raihan/Kuliah/SEMESTER 7/BISMILAH P3L BERES/storage/arsip_kelurahan/2025/masuk/Nama/text.txt",
+  "source_filename": "Paparan Pemutakhiran Data_Manajemen Talenta_melalui SI Petkom_2024_v1_13012025.pdf",
+  "tahun": 2025,
+  "jenis": "masuk",
+  "nomor": "Nama",
+  "perihal": "HAL YANG PERLU DIPERSIAPKAN",
+  "tanggal_surat": "13 January 2025",
+  "pengirim": null,
+  "penerima": null,
+  "parsed": {
+    "nomor": "Nama",
+    "sifat": null,
+    "perihal": "HAL YANG PERLU DIPERSIAPKAN",
+    "tanggal_surat": "13 January 2025",
+    "tahun": 2025,
+    "jenis": "masuk",
+    "pengirim": null,
+    "penerima": null
+  }
+}
