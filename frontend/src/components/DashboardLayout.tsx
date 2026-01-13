@@ -187,51 +187,6 @@ export default function DashboardLayout() {
             <Outlet />
           </div>
         </main>
-
-        {/* Footer */}
-        <footer className="border-t border-slate-200 bg-white mt-auto">
-          <div className="px-4 lg:px-8 py-8">
-            <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-sm">
-                {/* Alamat */}
-                <div>
-                  <h3 className="font-semibold text-slate-900 mb-3">Kelurahan Pela Mampang</h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Jl. Pela Mampang No.17
-                    <br />
-                    Kec. Mampang Prapatan
-                    <br />
-                    Jakarta Selatan 12790
-                  </p>
-                </div>
-
-                {/* Kontak */}
-                <div>
-                  <h3 className="font-semibold text-slate-900 mb-3">Kontak</h3>
-                  <p className="text-slate-600 leading-relaxed">
-                    Telp: (021) 7941234
-                    <br />
-                    Email: pelamampang@jakarta.go.id
-                    <br />
-                    Jam Layanan: 08.00 - 16.00 WIB
-                  </p>
-                </div>
-
-                {/* Sistem Info */}
-                <div>
-                  <h3 className="font-semibold text-slate-900 mb-3">Sistem Arsip Digital</h3>
-                  <p className="text-slate-600 leading-relaxed mb-3">
-                    Sistem manajemen arsip dokumen Kelurahan Pela Mampang untuk efisiensi
-                    administrasi pemerintahan.
-                  </p>
-                  <p className="text-slate-500 text-xs">
-                    © 2026 Kelurahan Pela Mampang. All rights reserved.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   );
