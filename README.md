@@ -1,15 +1,11 @@
 # Arsip Kelurahan - Document Automation Classifier
 
+🌐 **Live Demo**: [https://anantarf.github.io/Arsip-Digital-Kelurahan-Pela-Mampang/](https://anantarf.github.io/Arsip-Digital-Kelurahan-Pela-Mampang/)  
+📦 **GitHub**: [https://github.com/Anantarf/Arsip-Digital-Kelurahan-Pela-Mampang](https://github.com/Anantarf/Arsip-Digital-Kelurahan-Pela-Mampang)
+
 Sistem manajemen arsip digital untuk **Kelurahan Pela Mampang** menggunakan FastAPI + SQLite + React.
 
 Sistem ini otomatis mengklasifikasi, mengindeks, dan menyimpan dokumen surat masuk/keluar dengan ekstraksi metadata cerdas (OCR untuk PDF scan).
-
-## 🖼️ Screenshots
-
-![Dashboard](docs/screenshots/dashboard.png)
-![Upload](docs/screenshots/upload.png)
-![Search](docs/screenshots/search.png)
-![Preview](docs/screenshots/preview.png)
 
 ## ✨ Fitur Utama
 
