@@ -3,7 +3,7 @@ Anggota Kelompok 6 - 4IA19:
 1. Laurensius Aditya Danutama (50422805) — Project Manager
 2. Ratih Rasmiati (51422391) — Designer
 3. Ananta Raihan Fatih (50422202) — Programmer
-4. Shalwa Rahgiant Permata Putri (51422533) — System Analyst & QA
+4. Shalwa Rahgiant Permata Putri (51422533) — Analyst & QA
 5. Nasywa Aqilla Athaya Syah (51422208) — Technical Writer
 
 📦 **GitHub**: [https://github.com/Anantarf/Arsip-Digital-Kelurahan-Pela-Mampang](https://github.com/Anantarf/Arsip-Digital-Kelurahan-Pela-Mampang)
